@@ -141,3 +141,54 @@ df1.tail()
 df1.plot(y=['Close'])
 df1.plot(y=['ROC'])
 plt.show()
+
+#pivot points, 70% ACCURATE
+
+yf.pdr_override()
+start = datetime.datetime(2020,1,1)
+now = datetime.datetime.now()
+
+stock = 'FB'
+
+while stock != 'quit':
+    df = web.get_data_yahoo(stock, start, now)
+    df['High'].plot(label='high')
+
+    pivots = []
+    dates = []
+    counter = 0
+    lastPivot = 0
+    Range = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    daterange = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    for i in df.index:
+        currentMax = max(Range, default=0)
+        value = round(df["High"][i], 2)
+
+        Range = Range[1:9]
+        Range.append(value)
+        daterange = daterange[1:9]
+        daterange.append(i)
+
+        if currentMax == max(Range, default=0):
+            counter += 1
+        else:
+            counter = 0
+        if counter == 5:
+            lastPivot = currentMax
+            dateloc = Range.index(lastPivot)
+            lastDate = daterange[dateloc]
+            pivots.append(lastPivot)
+            dates.append(lastDate)
+    print()
+    # print(str(pivots))
+    # print(str(dates))
+    timeD = datetime.timedelta(days=30)
+
+    for index in range(len(pivots)):
+        print(str(pivots[index]) + " :" + str(dates[index]))
+
+        plt.plot_date([dates[index], dates[index] + timeD],
+                      [pivots[index], pivots[index]], linestyle='-', linewidth=2, marker=',')
+
+    plt.show()
